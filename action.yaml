@@ -50,7 +50,7 @@ inputs:
     default: null
   headers:
     required: false
-    description: "Dynamic template data"
+    description: "Additional email headers"
     default: null
 runs:
   using: composite
