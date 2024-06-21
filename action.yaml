@@ -1,7 +1,8 @@
 name: 'Send email via sendgrid'
 author: 'Xander-Rudolph'
 branding:
-  icon: 'search'
+  # see https://actions-cool.github.io/github-action-branding/
+  icon: 'mail'
   color: 'orange'
 description: 'Send an email using sendgrid'
 inputs:
