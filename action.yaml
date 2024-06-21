@@ -35,7 +35,7 @@ inputs:
   contentType:
     required: false
     description: "Body content type"
-    default: 'html'
+    default: null
   EnableClickTracking:
     required: false
     description: "Enable URL replacement for click tracking"
@@ -196,22 +196,22 @@ runs:
         }
         if( -not $env:sendGridApiKey ){Write-Error "SendGrid API key not detected as an environment variable. Please make sure to declare this variable for runtime exection"}
         $Splat = @{
-          toEmail               = ${{ inputs.toEmail }}
-          fromEmail             = ${{ inputs.fromEmail }}
-          subject               = ${{ inputs.subject }}
-          body                  = ${{ inputs.body }}
+          toEmail               = '${{ inputs.toEmail }}'
+          fromEmail             = '${{ inputs.fromEmail }}'
+          subject               = '${{ inputs.subject }}'
+          body                  = '${{ inputs.body }}'
         }
         if( -not $replyTo ){
-          $splat.replyTo = $fromEmail
+          $splat.replyTo = '$fromEmail'
         }
         Else{
-          $splat.replyTo = $replyTo
+          $splat.replyTo = '$replyTo'
         }
-        if($attachments)        {$splat.attachments = $attachments}
-        if($contentType)        {$splat.contentType = $contentType}
-        if($EnableClickTracking){$splat.EnableClickTracking = $EnableClickTracking}
-        if($templateId)         {$splat.templateId = $templateId}
-        if($dynamicTemplateData){$splat.dynamicTemplateData = $dynamicTemplateData}
-        if($cc)                 {$splat.cc = $cc}
-        if($bcc)                {$splat.bcc = $bcc}
+        if('${{ inputs.attachments }}' -ne '')          {$splat.attachments = $attachments}
+        if('${{ inputs.contentType }}' -ne '')          {$splat.contentType = $contentType}
+        if('${{ inputs.EnableClickTracking }}' -ne '')  {$splat.EnableClickTracking = $EnableClickTracking}
+        if('${{ inputs.templateId }}' -ne '')           {$splat.templateId = $templateId}
+        if('${{ inputs.dynamicTemplateData }}' -ne '')  {$splat.dynamicTemplateData = $dynamicTemplateData}
+        if('${{ inputs.cc }}' -ne '')                   {$splat.cc = $cc}
+        if('${{ inputs.bcc }}' -ne '')                  {$splat.bcc = $bcc}
         Send-GridMailMessage @Splat
