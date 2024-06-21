@@ -209,7 +209,7 @@ runs:
         }
         if('${{ inputs.attachments }}' -ne '')          {$splat.attachments = $attachments}
         if('${{ inputs.contentType }}' -ne '')          {$splat.contentType = $contentType}
-        if(${{ inputs.EnableClickTracking }})           {$splat.EnableClickTracking = $EnableClickTracking}
+        if($${{ inputs.EnableClickTracking }})          {$splat.EnableClickTracking = $true}
         if('${{ inputs.templateId }}' -ne '')           {$splat.templateId = $templateId}
         if('${{ inputs.dynamicTemplateData }}' -ne '')  {$splat.dynamicTemplateData = $dynamicTemplateData}
         if('${{ inputs.cc }}' -ne '')                   {$splat.cc = $cc}
