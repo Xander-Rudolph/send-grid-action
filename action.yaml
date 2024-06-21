@@ -202,10 +202,10 @@ runs:
           body                  = '${{ inputs.body }}'
         }
         if( -not $replyTo ){
-          $splat.replyTo = '$fromEmail'
+          $splat.replyTo = '${{ inputs.fromEmail }}'
         }
         Else{
-          $splat.replyTo = '$replyTo'
+          $splat.replyTo = '${{ inputs.replyTo }}'
         }
         if('${{ inputs.attachments }}' -ne '')          {$splat.attachments = $attachments}
         if('${{ inputs.contentType }}' -ne '')          {$splat.contentType = $contentType}
