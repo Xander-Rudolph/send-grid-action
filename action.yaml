@@ -1,0 +1,213 @@
+name: 'Send email via sendgrid'
+author: 'Xander-Rudolph'
+branding:
+  icon: 'search'
+  color: 'orange'
+description: 'Send an email using sendgrid'
+inputs:
+  toEmail:
+    required: true
+    description: "To Address"
+  fromEmail:
+    required: true
+    description: "From Address"
+  replyto:
+    required: false
+    description: "ReplyTo Address"
+    default: null
+  cc:
+    required: false
+    description: "cc Address"
+    default: null
+  bcc:
+    required: false
+    description: "bcc Address"
+    default: null
+  subject:
+    required: true
+    description: "Subject for mail message"
+  body:
+    required: true
+    description: "Body for mail message"
+  attachments:
+    required: false
+    description: "attachments for mail message"
+  contentType:
+    required: false
+    description: "Body content type"
+    default: 'html'
+  EnableClickTracking:
+    required: false
+    description: "Enable URL replacement for click tracking"
+    default: false
+  templateId:
+    required: false
+    description: "Template IDs"
+    default: null
+  dynamicTemplateData:
+    required: false
+    description: "Dynamic template data"
+    default: null
+  headers:
+    required: false
+    description: "Dynamic template data"
+    default: null
+runs:
+  using: composite
+  steps:
+    - name: Update GlobalAssemblyInfo.cs
+      shell: pwsh
+      run: |
+        Function Send-GridMailMessage {
+            Param(
+                [Parameter(Mandatory=$true)]
+                [string]
+                $toEmail,
+                [Parameter(Mandatory=$true)]
+                [string]
+                $fromEmail,
+                [Parameter(Mandatory=$true)]
+                [string]
+                $replyto,
+                [Parameter(Mandatory=$false)]
+                [string]
+                $cc,
+                [Parameter(Mandatory=$false)]
+                [string]
+                $bcc,
+                [Parameter(Mandatory=$true)]
+                [string]
+                $subject,
+                [Parameter(Mandatory=$true)]
+                [string]
+                $body,
+                [Parameter(Mandatory=$false)]
+                [ValidateSet("text", "html")]
+                [string]
+                $contentType = "html",
+                [switch]
+                $EnableClickTracking,
+                [Parameter(Mandatory=$false)]
+                [array]
+                $attachments,
+                [Parameter(Mandatory=$false)]
+                [string]
+                $templateId,
+                [Parameter(Mandatory=$false)]
+                [hashtable]
+                $dynamicTemplateData,
+                [Parameter(Mandatory=$false)]
+                [hashtable]
+                $headers
+            )
+        
+            # Create the email content
+            $emailContent = @{
+                personalizations = @(
+                    @{
+                        to = @(
+                            @{
+                                email = $toEmail
+                            }
+                        )
+                        subject = $subject
+                    }
+                )
+                from = @{
+                    email = $fromEmail
+                }
+                reply_to = @{
+                    email = $replyto
+                    name = $replyto
+                }
+                content = @(
+                    @{
+                        type  = "text/$contentType"
+                        value = $body
+                    }
+                )
+            }
+        
+            # Add CC if provided
+            if ($cc) {
+                $emailContent.personalizations[0].cc = @(
+                    @{
+                        email = $cc
+                    }
+                )
+            }
+        
+            # Add BCC if provided
+            if ($bcc) {
+                $emailContent.personalizations[0].bcc = @(
+                    @{
+                        email = $bcc
+                    }
+                )
+            }
+        
+            # Add attachments if provided
+            if ($attachments) {
+                $emailContent.attachments = @()
+                foreach ($attachment in $attachments) {
+                    $fileContent = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes($attachment))
+                    $emailContent.attachments += @{
+                        content = $fileContent
+                        filename = [System.IO.Path]::GetFileName($attachment)
+                        type = "application/octet-stream"
+                        disposition = "attachment"
+                    }
+                }
+            }
+        
+            # Add template ID if provided
+            if ($templateId) {
+                $emailContent.template_id = $templateId
+            }
+        
+            # Add dynamic template data if provided
+            if ($dynamicTemplateData) {
+                $emailContent.personalizations[0].dynamic_template_data = $dynamicTemplateData
+            }
+        
+            # Add custom headers if provided
+            if ($headers) {
+                $emailContent.personalizations[0].headers = $headers
+            }
+        
+            # Add tracking settings if enabled
+            if (-not $EnableClickTracking) {
+                $emailContent.tracking_settings = @{
+                    click_tracking = @{
+                        enable = $false
+                    }
+                }
+            }
+        
+            $emailContentJson = $emailContent | ConvertTo-Json -Depth 10
+            $sendGridApiUrl = "https://api.sendgrid.com/v3/mail/send"
+        
+            $response = Invoke-RestMethod -Uri $sendGridApiUrl -Method Post -Headers @{
+                "Authorization" = "Bearer $env:sendGridApiKey"
+                "Content-Type"  = "application/json"
+            } -Body $emailContentJson
+        
+            return $response
+        }
+        if( -not $env:sendGridApiKey ){Write-Error "SendGrid API key not detected as an environment variable. Please make sure to declare this variable for runtime exection"}
+        if( -not $replyTo ){$replyTo = $fromEmail}
+        $Splat = @{
+          toEmail               = ${{ inputs.toEmail }}
+          fromEmail             = ${{ inputs.fromEmail }}
+          replyto               = ${{ inputs.replyto }}
+          cc                    = ${{ inputs.cc }}
+          bcc                   = ${{ inputs.bcc }}
+          subject               = ${{ inputs.subject }}
+          body                  = ${{ inputs.body }}
+          attachments           = ${{ inputs.attachments }}
+          contentType           = ${{ inputs.contentType }}
+          EnableClickTracking   = ${{ inputs.EnableClickTracking }}
+          templateId            = ${{ inputs.templateId }}
+          dynamicTemplateData   = ${{ inputs.dynamicTemplateData }}
+        }
+        Send-GridMailMessage @Splat
