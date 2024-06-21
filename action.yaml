@@ -195,19 +195,23 @@ runs:
             return $response
         }
         if( -not $env:sendGridApiKey ){Write-Error "SendGrid API key not detected as an environment variable. Please make sure to declare this variable for runtime exection"}
-        if( -not $replyTo ){$replyTo = $fromEmail}
         $Splat = @{
           toEmail               = ${{ inputs.toEmail }}
           fromEmail             = ${{ inputs.fromEmail }}
-          replyto               = ${{ inputs.replyto }}
-          cc                    = ${{ inputs.cc }}
-          bcc                   = ${{ inputs.bcc }}
           subject               = ${{ inputs.subject }}
           body                  = ${{ inputs.body }}
-          attachments           = ${{ inputs.attachments }}
-          contentType           = ${{ inputs.contentType }}
-          EnableClickTracking   = ${{ inputs.EnableClickTracking }}
-          templateId            = ${{ inputs.templateId }}
-          dynamicTemplateData   = ${{ inputs.dynamicTemplateData }}
         }
+        if( -not $replyTo ){
+          $splat.replyTo = $fromEmail
+        }
+        Else{
+          $splat.replyTo = $replyTo
+        }
+        if($attachments)        {$splat.attachments = $attachments}
+        if($contentType)        {$splat.contentType = $contentType}
+        if($EnableClickTracking){$splat.EnableClickTracking = $EnableClickTracking}
+        if($templateId)         {$splat.templateId = $templateId}
+        if($dynamicTemplateData){$splat.dynamicTemplateData = $dynamicTemplateData}
+        if($cc)                 {$splat.cc = $cc}
+        if($bcc)                {$splat.bcc = $bcc}
         Send-GridMailMessage @Splat
