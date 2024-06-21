@@ -214,5 +214,5 @@ runs:
         if('${{ inputs.dynamicTemplateData }}' -ne '')  {$splat.dynamicTemplateData = $dynamicTemplateData}
         if('${{ inputs.cc }}' -ne '')                   {$splat.cc = $cc}
         if('${{ inputs.bcc }}' -ne '')                  {$splat.bcc = $bcc}
-        Write-Warning "About to send an email with the following params:`n$splat"
+        Write-Warning "About to send an email with the following params:`n$($splat | convertto-json -depth 20)"
         Send-GridMailMessage @Splat
