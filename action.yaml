@@ -55,7 +55,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Update GlobalAssemblyInfo.cs
+    - name: Send email
       shell: pwsh
       run: |
         Function Send-GridMailMessage {
